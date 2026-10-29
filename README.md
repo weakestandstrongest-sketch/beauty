@@ -3,7 +3,15 @@
 勉強や作業のあいだ、画面に開いておくための一枚の絵です。
 機能は最小限にとどめ、見た目を優先して作っています。
 
-`index.html` をブラウザで開くだけで動きます。ビルドは不要です。
+公開ページ: https://weakestandstrongest-sketch.github.io/beauty/
+
+`index.html` をブラウザで開くだけでも動きます。ビルドは不要です。
+
+## GitHub Pages での公開
+
+`.github/workflows/pages.yml` が、プッシュのたびにサイトを GitHub Pages へデプロイします。
+最初に一度だけ、リポジトリの **Settings → Pages → Build and deployment → Source** を **GitHub Actions** にしてください。
+そのあと Actions タブから「Deploy to GitHub Pages」を再実行するか、もう一度プッシュすると公開されます。
 
 ## 見どころ
 
