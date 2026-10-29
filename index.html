@@ -143,7 +143,8 @@ body {
   color: var(--paper-2);
   transform: translateY(.9em);
 }
-.digit { display: inline-block; animation: rise 1.8s var(--ease) both; animation-delay: var(--d, 0s); }
+/* the box is padded past the glyphs' ascenders so nothing is ever clipped when the page repaints */
+.digit { display: inline-block; padding-block: .16em; margin-block: -.16em; animation: rise-d 1.8s var(--ease) backwards; animation-delay: var(--d, 0s); }
 
 .intent { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: .2em .8em; max-width: 46rem; }
 .intent .label { flex: none; }
@@ -189,7 +190,7 @@ body {
   letter-spacing: .14em;
   white-space: nowrap;
 }
-.ko-name.brush { animation: brush 2.6s var(--ease) both .3s; }
+.ko-name.brush { animation: brush 2.6s var(--ease) backwards .3s; }
 .ko-read {
   font-family: var(--f-jp);
   font-size: clamp(12px, 1.6vh, 15px);
@@ -200,7 +201,7 @@ body {
 }
 
 /* english / sekki notes */
-.en { grid-area: en; display: grid; gap: 8px; max-width: 34rem; animation: rise 1.8s var(--ease) both .5s; }
+.en { grid-area: en; display: grid; gap: 8px; max-width: 34rem; animation: rise 1.8s var(--ease) backwards .5s; }
 .en em {
   font-family: var(--f-display);
   font-size: clamp(1.05rem, 1.6vw, 1.35rem);
@@ -268,6 +269,7 @@ button.is-on { background: var(--paper); color: var(--ink); border-color: var(--
 
 /* ───────── motion ───────── */
 @keyframes rise { from { opacity: 0; transform: translateY(.22em); filter: blur(10px); } }
+@keyframes rise-d { from { opacity: 0; transform: translateY(.22em); } }
 @keyframes brush { from { clip-path: inset(0 0 100% 0); filter: blur(6px); } to { clip-path: inset(0 0 0 0); } }
 @keyframes stroke { from { stroke-dashoffset: 20; } }
 @keyframes breathe { 50% { opacity: .35; } }
@@ -294,9 +296,9 @@ button.is-on { background: var(--paper); color: var(--ink); border-color: var(--
 
 
 /* ───────── opening — a hairline is drawn, a seal is pressed, then the fusuma slide apart ───────── */
-.top { animation: rise 1.6s var(--ease) both .15s; }
-.bottom { animation: rise 1.6s var(--ease) both .55s; }
-.seal, .ko-read { animation: rise 1.6s var(--ease) both 1s; }
+.top { animation: rise 1.6s var(--ease) backwards .15s; }
+.bottom { animation: rise 1.6s var(--ease) backwards .55s; }
+.seal, .ko-read { animation: rise 1.6s var(--ease) backwards 1s; }
 body.pre .digit, body.pre .en, body.pre .ko-name, body.pre .top, body.pre .bottom,
 body.pre .seal, body.pre .ko-read { animation-play-state: paused; }
 
