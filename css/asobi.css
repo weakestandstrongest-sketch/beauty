@@ -1155,3 +1155,132 @@ body[data-view="game"] #app {
 @media (prefers-reduced-motion: reduce) {
   .asobi-view *, .overlay, .overlay * { animation: none !important; transition: none !important; }
 }
+
+/* =========================================================
+   本物の素材 — 3D で撮った駒と、木・漆・フェルトの盤 (html.real のときだけ)
+   ========================================================= */
+
+/* 卓に落ちる、柔らかな照明 */
+body[data-view="game"] .asobi-view {
+  background:
+    radial-gradient(70% 55% at 50% 46%, rgba(255, 234, 205, .08), transparent 72%),
+    rgba(9, 9, 13, .82);
+}
+
+.a-loading { flex: 1; display: grid; place-content: center; justify-items: center; gap: 18px; }
+.a-loading-line { width: 1px; height: 72px; background: var(--paper); transform-origin: top; animation: a-draw 1.1s var(--ease) infinite alternate; }
+@keyframes a-draw { from { transform: scaleY(.1); opacity: .3; } }
+
+/* 盤の厚み: 側面が何枚も重なったように見せる */
+html.real .gomoku-board,
+html.real .shogi-frame {
+  box-shadow:
+    0 1px 0 #c99a52, 0 3px 0 #b6843f, 0 5px 0 #9c6c2f, 0 8px 0 #7a5223, 0 10px 0 #5d3e1a,
+    0 36px 60px rgba(0, 0, 0, .65);
+}
+html.real .gk-grid line { stroke: #1b1209; stroke-width: .24; opacity: .78; }
+html.real .gk-star { fill: #1b1209; }
+.gk-stone3.preview { opacity: .55; }
+.gk-stone3.new { animation: drop-stone .3s var(--spring); transform-box: fill-box; transform-origin: center; }
+
+html.real .stone-mark.black { background: var(--sp-go-b) center / 144% no-repeat; box-shadow: none; }
+html.real .stone-mark.white { background: var(--sp-go-w) center / 144% no-repeat; box-shadow: none; }
+
+/* チェス: 黒檀の額に、楓と胡桃の寄木。境目に節気の色の象嵌 */
+html.real .chess-frame {
+  padding: 3.4%;
+  background: var(--tx-walnutDark) center / cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 225, 180, .1), inset 0 2px 0 rgba(255, 255, 255, .07),
+    0 2px 0 #1a0f08, 0 4px 0 #140b06, 0 7px 0 #0d0704,
+    0 36px 64px rgba(0, 0, 0, .65);
+}
+html.real .chess-board {
+  overflow: visible;
+  box-shadow: 0 0 0 2px #120a05, 0 0 0 3.5px color-mix(in srgb, var(--kc) 65%, #c9a063), 0 0 0 5px #120a05;
+}
+html.real .chess-board::after { background: linear-gradient(160deg, rgba(255, 255, 255, .1), transparent 38%, rgba(0, 0, 0, .14)); }
+html.real .sq.light { background-color: #e6cfa2; background-image: var(--tx-maple); background-size: 800% 800%; }
+html.real .sq.dark { background-color: #4a2e1d; background-image: var(--tx-walnut); background-size: 800% 800%; }
+html.real .sq.light .coord { color: rgba(90, 55, 25, .7); }
+html.real .sq.dark .coord { color: rgba(240, 220, 190, .7); }
+html.real .sq.last::before { background: rgba(255, 214, 120, .32); }
+html.real .sq.selected::before { background: color-mix(in srgb, var(--kc) 45%, transparent); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--kc) 80%, #fff); }
+
+.cp3 { display: block; pointer-events: none; max-width: none; -webkit-user-drag: none; }
+.sq .cp3 { position: absolute; z-index: 2; left: 0; width: 100%; height: auto; aspect-ratio: 220 / 396; top: calc(66% - var(--ay) * 180%); }
+.chess-board.f2f .sq .cp3.b { transform: rotate(180deg); transform-origin: 50% calc(var(--ay) * 100%); }
+.plate-avatar .cp3 { width: 30px; height: auto; aspect-ratio: 220 / 396; margin-top: -12px; }
+.cp3.tiny { width: 15px; height: auto; aspect-ratio: 220 / 396; margin: -8px -4px 0 0; }
+.promo-modal .modal-buttons .btn .cp3 { height: 118%; width: auto; margin-top: -18%; }
+.result-mark .cp3 { height: 110px; width: auto; margin-top: -30px; }
+
+/* リバーシ: 胡桃の額に、漆の盤と真鍮の罫 */
+html.real .rv-frame {
+  padding: 3.4%;
+  background: var(--tx-walnutDark) center / cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 225, 180, .1),
+    0 2px 0 #1a0f08, 0 4px 0 #140b06, 0 7px 0 #0d0704,
+    0 36px 64px rgba(0, 0, 0, .65);
+}
+html.real .rv-grid {
+  background:
+    radial-gradient(110% 80% at 28% 12%, rgba(255, 236, 222, .16), transparent 52%),
+    linear-gradient(color-mix(in srgb, var(--k-mid) 30%, transparent), color-mix(in srgb, var(--k-deep) 40%, transparent)),
+    var(--tx-lacquer) center / cover,
+    #2a0d0e;
+  box-shadow: inset 0 0 44px rgba(0, 0, 0, .6), inset 0 0 0 1.5px rgba(214, 178, 110, .65);
+}
+html.real .rv-grid::after {
+  background:
+    radial-gradient(circle at 25% 25%, rgba(222, 190, 120, .95) 0 2.2px, transparent 2.8px),
+    radial-gradient(circle at 75% 25%, rgba(222, 190, 120, .95) 0 2.2px, transparent 2.8px),
+    radial-gradient(circle at 25% 75%, rgba(222, 190, 120, .95) 0 2.2px, transparent 2.8px),
+    radial-gradient(circle at 75% 75%, rgba(222, 190, 120, .95) 0 2.2px, transparent 2.8px);
+}
+html.real .rv-cell { box-shadow: inset -1px -1px 0 rgba(214, 178, 110, .42); }
+html.real .rv-cell.legal::after { border-color: rgba(222, 190, 120, .7); height: auto; aspect-ratio: 1; }
+html.real .rv-stone.black { background: var(--sp-rv-b) center / 147% no-repeat; box-shadow: none; }
+html.real .rv-stone.white { background: var(--sp-rv-w) center / 147% no-repeat; box-shadow: none; }
+html.real .rv-cell.last .rv-stone::after { inset: 43%; border-radius: 50%; }
+
+/* 将棋: 榧の盤に、柘植の駒 */
+html.real .shogi-board { border-color: #1b1209; }
+html.real .sh-cell { box-shadow: inset -1px -1px 0 rgba(27, 18, 9, .75); }
+html.real .sh-cell:nth-child(5n) { box-shadow: inset 0 -1px 0 rgba(27, 18, 9, .75); }
+html.real .sh-cell:nth-child(n + 21) { box-shadow: inset -1px 0 0 rgba(27, 18, 9, .75); }
+html.real .sh-cell:nth-child(25) { box-shadow: none; }
+img.koma3 { width: calc(var(--k, 1) * 112%); max-width: none; height: auto; filter: none; -webkit-user-drag: none; }
+.koma3.gote { filter: none; }
+.hand-piece img.koma3 { width: calc(var(--k, 1) * 50px); }
+.plate-avatar img.koma3 { width: 38px; }
+.promo-choice img.koma3 { width: 78px; }
+.result-mark img.koma3 { width: 92px; }
+
+/* ヒット&ブロー: ガラス玉 */
+.peg.peg3:not(.empty), .palette-btn.peg3 { background: var(--art) center / 144% no-repeat !important; box-shadow: none !important; }
+
+/* ヨット: フェルトを張った木箱の中で、3D のサイコロが転がる */
+.dice-tray.dice-3d {
+  position: relative;
+  overflow: hidden;
+  padding: 30px 8px 34px;
+  border: 0;
+  background: #0d1210;
+}
+.dice-tray.dice-3d::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 5px #24170e, inset 0 0 0 6px rgba(255, 230, 190, .12),
+    inset 0 14px 30px rgba(0, 0, 0, .6), inset 0 -8px 20px rgba(0, 0, 0, .35);
+}
+.dice-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+.dice-3d .dice-row { position: relative; z-index: 1; }
+.dice-3d .die { background: transparent !important; box-shadow: none !important; transform: none !important; animation: none !important; }
+.dice-3d .die .pip { visibility: hidden; }
+.dice-3d .die.held::after { bottom: -28px; z-index: 3; }

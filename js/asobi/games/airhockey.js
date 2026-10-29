@@ -1,3 +1,4 @@
+import { real } from '../real/index.js';
 import { h, icon, modal, showResult, sfx, showRules, loadPref, savePref } from '../ui.js';
 
 const RULES = `
@@ -271,10 +272,17 @@ export function mount(root) {
     t.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
     const bg = t.createRadialGradient(W / 2, H / 2, 10, W / 2, H / 2, H * 0.75);
     // 卓はいまの節気の深い色に、墨を重ねた漆のような地
-    const deep = getComputedStyle(document.documentElement).getPropertyValue('--k-mid').trim() || '#4a2a2a';
+    const deep = getComputedStyle(document.documentElement).getPropertyValue('--k-deep').trim() || '#10111a';
     bg.addColorStop(0, deep);
-    bg.addColorStop(1, '#09090d');
+    bg.addColorStop(1, '#050507');
     t.fillStyle = bg;
+    t.fillRect(0, 0, W, H);
+    // 天板のつや
+    const gloss = t.createLinearGradient(0, 0, W, H * 0.7);
+    gloss.addColorStop(0, 'rgba(255,255,255,0.07)');
+    gloss.addColorStop(0.42, 'rgba(255,255,255,0.015)');
+    gloss.addColorStop(0.5, 'rgba(255,255,255,0)');
+    t.fillStyle = gloss;
     t.fillRect(0, 0, W, H);
     for (const [y0, y1, color] of [[H, H / 2, '143,179,209'], [0, H / 2, '224,138,118']]) {
       const g = t.createLinearGradient(0, y0, 0, y1);
@@ -328,6 +336,13 @@ export function mount(root) {
   }
 
   function drawMallet(m, color) {
+    const art = real.hockey(`mallet${COLORS.indexOf(color)}`);
+    if (art) {
+      // 3D で撮ったマレット (直径 1 が画像の 1/1.4)
+      const w = MALLET_R * 2.8;
+      ctx.drawImage(art, m.x - w / 2, m.y - w / 2, w, w);
+      return;
+    }
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath(); ctx.arc(m.x + 1, m.y + 1.6, MALLET_R, 0, Math.PI * 2); ctx.fill();
@@ -353,6 +368,12 @@ export function mount(root) {
   }
 
   function drawPuck() {
+    const art = real.hockey('puck');
+    if (art) {
+      const w = PUCK_R * 2.8;
+      ctx.drawImage(art, puck.x - w / 2, puck.y - w / 2, w, w);
+      return;
+    }
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath(); ctx.arc(puck.x + 0.8, puck.y + 1.2, PUCK_R, 0, Math.PI * 2); ctx.fill();

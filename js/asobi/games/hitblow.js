@@ -1,5 +1,6 @@
 import { h, gameShell, sfx, settings, loadPref, savePref } from '../ui.js';
 import { judge, isValidCode } from './hitblow-logic.js';
+import { real } from '../real/index.js';
 
 const RULES = `
 <p>おたがいに4つの色の並びを秘密で決め、相手の並びを先に当てたほうが勝ちです。</p>
@@ -19,9 +20,14 @@ const LENGTH = 4;
 const MAX_TURNS = 10;
 const PLAYER = ['プレイヤー1', 'プレイヤー2'];
 
+// 3D で撮ったガラス玉があれば、それを地に敷く
+const pegStyle = (hex) => {
+  const art = real.peg(hex);
+  return art ? { '--c': hex, '--art': `url(${art})` } : { '--c': hex };
+};
 const peg = (color, extra = '') => h('span', {
-  class: `peg ${color == null ? 'empty' : ''} ${extra}`,
-  style: color == null ? null : { '--c': COLORS[color].hex },
+  class: `peg ${color == null ? 'empty' : ''} ${real.peg(COLORS[0].hex) ? 'peg3' : ''} ${extra}`,
+  style: color == null ? null : pegStyle(COLORS[color].hex),
   'aria-label': color == null ? '空' : COLORS[color].name,
 });
 
@@ -85,8 +91,8 @@ export function mount(root) {
         return el;
       }));
       palette.replaceChildren(...COLORS.slice(0, opts.colors).map((c, ci) => h('button', {
-        class: 'palette-btn',
-        style: { '--c': c.hex },
+        class: `palette-btn ${real.peg(c.hex) ? 'peg3' : ''}`,
+        style: pegStyle(c.hex),
         'aria-label': c.name,
         disabled: input.length >= LENGTH || (!opts.duplicates && input.includes(ci)),
         onclick: () => { if (input.length < LENGTH) { input.push(ci); sfx('tap'); refresh(); } },

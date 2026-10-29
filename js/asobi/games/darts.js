@@ -1,5 +1,6 @@
 import { h, gameShell, playerPanel, showResult, toast, sfx, fitBoard, loadPref, savePref, confirm } from '../ui.js';
 import * as D from './darts-logic.js';
+import { real } from '../real/index.js';
 
 const RULES = `
 <p>1台を交互に持って、3本ずつ投げます。</p>
@@ -178,19 +179,49 @@ export function mount(root) {
     g.fillStyle = kc;
     g.beginPath(); g.arc(cx, cy, RING.bullIn * R, 0, Math.PI * 2); g.fill();
 
-    // ワイヤー
-    g.strokeStyle = 'rgba(210,200,182,.6)';
-    g.lineWidth = Math.max(0.6, S / 700);
-    for (const r of [RING.bullIn, RING.bullOut, RING.tripleIn, RING.tripleOut, RING.doubleIn, RING.doubleOut]) {
-      g.beginPath(); g.arc(cx, cy, r * R, 0, Math.PI * 2); g.stroke();
+    // 麻縄の繊維
+    const fib = real.sisal();
+    if (fib) {
+      g.save();
+      g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.clip();
+      g.fillStyle = g.createPattern(fib, 'repeat');
+      g.globalAlpha = 0.9;
+      g.fillRect(0, 0, S, S);
+      g.restore();
+      // 縁ほど少し沈む
+      const dim = g.createRadialGradient(cx, cy, R * 0.6, cx, cy, R);
+      dim.addColorStop(0, 'rgba(0,0,0,0)');
+      dim.addColorStop(1, 'rgba(0,0,0,.18)');
+      g.fillStyle = dim;
+      g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.fill();
     }
-    for (let i = 0; i < 20; i++) {
-      const a = ((i * 18 - 9 - 90) * Math.PI) / 180;
-      g.beginPath();
-      g.moveTo(cx + Math.cos(a) * RING.bullOut * R, cy + Math.sin(a) * RING.bullOut * R);
-      g.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
-      g.stroke();
-    }
+
+    // ワイヤー: 影を落として、上に細い金属線
+    const wires = (dx, dy, style, w) => {
+      g.strokeStyle = style;
+      g.lineWidth = w;
+      for (const r of [RING.bullIn, RING.bullOut, RING.tripleIn, RING.tripleOut, RING.doubleIn, RING.doubleOut]) {
+        g.beginPath(); g.arc(cx + dx, cy + dy, r * R, 0, Math.PI * 2); g.stroke();
+      }
+      for (let i = 0; i < 20; i++) {
+        const a = ((i * 18 - 9 - 90) * Math.PI) / 180;
+        g.beginPath();
+        g.moveTo(cx + dx + Math.cos(a) * RING.bullOut * R, cy + dy + Math.sin(a) * RING.bullOut * R);
+        g.lineTo(cx + dx + Math.cos(a) * R, cy + dy + Math.sin(a) * R);
+        g.stroke();
+      }
+    };
+    const ww = Math.max(0.7, S / 620);
+    wires(ww * 0.9, ww * 1.2, 'rgba(0,0,0,.45)', ww * 1.3);
+    const metal = g.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
+    metal.addColorStop(0, '#f2f3f4');
+    metal.addColorStop(0.5, '#9fa4aa');
+    metal.addColorStop(1, '#dfe2e5');
+    wires(0, 0, metal, ww);
+    // 数字の輪 (針金)
+    g.strokeStyle = 'rgba(220,224,228,.55)';
+    g.lineWidth = ww;
+    g.beginPath(); g.arc(cx, cy, S * 0.405, 0, Math.PI * 2); g.stroke();
     // 光沢
     const sheen = g.createRadialGradient(cx - R * 0.5, cy - R * 0.6, 0, cx - R * 0.5, cy - R * 0.6, R * 1.6);
     sheen.addColorStop(0, 'rgba(255,255,255,.08)');
@@ -269,7 +300,16 @@ export function mount(root) {
       const x = cx + f.x * R, y = cy + f.y * R;
       const k = Math.min(1, age / 0.22);
       const ease = 1 - (1 - k) ** 3;
-      drawDart(x, y, S, PCOLOR[f.player], 2.4 - 1.4 * ease, 0.25 + 0.75 * ease);
+      const art = real.dart(PCOLOR[f.player]);
+      if (art?.img?.complete && art.img.naturalWidth) {
+        // 3D で撮った矢 (盤に落ちる影ごと)。先端が刺さった点に来るように置く
+        const w = R * (1.0 + 0.9 * (1 - ease));
+        ctx.globalAlpha = 0.25 + 0.75 * ease;
+        ctx.drawImage(art.img, x - art.at[0] * w, y - art.at[1] * w, w, w);
+        ctx.globalAlpha = 1;
+      } else {
+        drawDart(x, y, S, PCOLOR[f.player], 2.4 - 1.4 * ease, 0.25 + 0.75 * ease);
+      }
       if (age < 1.4) {
         const a = Math.max(0, 1 - Math.max(0, age - 0.5) / 0.9);
         ctx.save();

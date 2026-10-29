@@ -5,6 +5,7 @@
 //   #<ゲームの id>  … そのゲーム (下のバーは隠れる)
 import { h, settings, saveSettings, closeAllOverlays, unlockAudio, sfx } from './ui.js';
 import { ART } from './art.js';
+import { prepare } from './real/index.js';
 import * as yacht from './games/yacht.js';
 import * as hitblow from './games/hitblow.js';
 import * as gomoku from './games/gomoku.js';
@@ -33,6 +34,7 @@ const app = document.getElementById('app');
 const bar = document.getElementById('tabbar');
 let cleanup = null;
 let menuBuilt = false;
+let routeId = 0;
 
 function renderMenu() {
   const toggle = (key, label, desc) => {
@@ -87,18 +89,25 @@ function setView(name) {
   window.dispatchEvent(new CustomEvent('ko:view', { detail: name }));
 }
 
-function route() {
+async function route() {
   closeAllOverlays();
   const id = location.hash.replace(/^#\/?/, '');
   const game = GAMES.find((g) => g.id === id);
   if (cleanup) { cleanup(); cleanup = null; }
+  const my = ++routeId;
 
   if (game) {
     document.title = `${game.title} — ${BASE_TITLE}`;
-    const screen = h('div', { class: `screen game-${game.id}` });
-    app.replaceChildren(screen);
     menuBuilt = false;
     setView('game');
+    // 駒を撮り、盤の素材を用意してから開く (はじめての一回だけ少しかかる)
+    app.replaceChildren(h('div', { class: 'a-loading', role: 'status' },
+      h('span', { class: 'a-loading-line' }),
+      h('span', { class: 'label' }, `${game.en} — 駒を並べています`)));
+    await Promise.race([prepare(game.id), new Promise((r) => setTimeout(r, 20000))]);
+    if (my !== routeId) return;
+    const screen = h('div', { class: `screen game-${game.id}` });
+    app.replaceChildren(screen);
     cleanup = game.mod.mount(screen) || null;
     return;
   }
