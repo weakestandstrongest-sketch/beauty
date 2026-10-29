@@ -9,9 +9,8 @@
 
 ## GitHub Pages での公開
 
-`.github/workflows/pages.yml` が、プッシュのたびにサイトを GitHub Pages へデプロイします。
-最初に一度だけ、リポジトリの **Settings → Pages → Build and deployment → Source** を **GitHub Actions** にしてください。
-そのあと Actions タブから「Deploy to GitHub Pages」を再実行するか、もう一度プッシュすると公開されます。
+リポジトリの **Settings → Pages** で、このブランチのルートから公開する設定になっています。
+プッシュするたびに自動で反映されます。`.nojekyll` は Jekyll の変換を止めて、ファイルをそのまま配信するためのものです。
 
 ## 見どころ
 
