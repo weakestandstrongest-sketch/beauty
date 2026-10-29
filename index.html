@@ -15,9 +15,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;1,6..96,400&family=DM+Mono:wght@300;400&family=Zen+Old+Mincho:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/asobi.css">
 <style>
 /* Layout: full-bleed living silk under a hairline frame — the clock sits low-left like a magazine cover line,
-   the current micro-season (七十二候) is set vertically on the right, the focus rail runs along the foot. */
+   the current micro-season (七十二候) is set vertically on the right. A floating glass bar at the foot switches
+   between 候 and 遊 (two-player games, styled in css/asobi.css), which opens over the same silk. */
 :root {
   --ink: #0b0b10;
   --paper: #f4f0ea;
@@ -25,6 +27,9 @@
   --paper-3: rgba(244, 240, 234, .32);
   --line: rgba(244, 240, 234, .2);
   --kc: #bb5548; /* 今日の色 — rewritten by script from the current 節気 */
+  --k-deep: #10111a; /* the 節気's silk palette, also rewritten by script; the game boards borrow it */
+  --k-mid: #8e3a33;
+  --k-light: #dfe3ea;
   --f-display: "Bodoni Moda", "Bodoni 72", Didot, "Times New Roman", serif;
   --f-jp: "Zen Old Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
   --f-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -82,7 +87,8 @@ body {
     "bottom bottom";
   column-gap: clamp(16px, 4vw, 64px);
   row-gap: clamp(10px, 2vh, 24px);
-  padding-block: clamp(22px, 4vh, 44px);
+  padding-top: clamp(22px, 4vh, 44px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); /* room for the tab bar */
   padding-left: max(clamp(22px, 4vw, 56px), env(safe-area-inset-left, 0px));
   padding-right: max(clamp(22px, 4vw, 56px), env(safe-area-inset-right, 0px));
   overflow: hidden;
@@ -227,13 +233,12 @@ body {
 .bottom {
   grid-area: bottom;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 14px clamp(14px, 2.4vw, 32px);
   padding-top: clamp(4px, 1vh, 12px);
 }
-.focus { display: flex; gap: 6px; }
-button {
+.frame button, .restore {
   font: inherit;
   font-size: 11px;
   letter-spacing: .18em;
@@ -245,30 +250,13 @@ button {
   cursor: pointer;
   transition: background .3s, border-color .3s;
 }
-button:hover { background: rgba(244, 240, 234, .08); border-color: var(--paper-3); }
-button:focus-visible, #intent:focus-visible { outline: 1px solid var(--paper); outline-offset: 3px; }
-button.is-on { background: var(--paper); color: var(--ink); border-color: var(--paper); text-shadow: none; }
-#focusTime { font-variant-numeric: tabular-nums; min-width: 5ch; }
-
-.rail { position: relative; height: 1px; background: var(--line); }
-.rail-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--paper); transition: width 1s linear; }
-.rail-fill::after {
-  content: ""; position: absolute; right: -3px; top: -3px;
-  width: 7px; height: 7px; border-radius: 50%; background: var(--paper);
-  box-shadow: 0 0 14px 2px rgba(244, 240, 234, .6);
-}
-
-.tally { display: flex; align-items: center; gap: 10px; }
-.tally svg { width: 18px; height: 18px; stroke: var(--paper); stroke-width: 1.4; stroke-linecap: square; fill: none; }
-.tally svg.ghost { stroke: var(--paper-3); }
-.tally path { stroke-dasharray: 20; stroke-dashoffset: 0; }
-.tally path.new { animation: stroke 1.2s var(--ease) both; }
-.tally-glyphs { display: flex; gap: 4px; }
-
+.frame button:hover, .restore:hover { background: rgba(244, 240, 234, .08); border-color: var(--paper-3); }
+.frame button:focus-visible, .restore:focus-visible, #intent:focus-visible, .tabbar a:focus-visible { outline: 1px solid var(--paper); outline-offset: 3px; }
+.frame button.is-on { background: var(--paper); color: var(--ink); border-color: var(--paper); text-shadow: none; }
 .nav { display: flex; align-items: center; gap: 6px; }
 .nav button { padding: 9px 11px; }
 #nowBtn { font-family: var(--f-jp); letter-spacing: 0; }
-.keys { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--paper-3); }
+.hints { display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--paper-3); }
 
 .restore {
   position: fixed; z-index: 4;
@@ -281,9 +269,6 @@ button.is-on { background: var(--paper); color: var(--ink); border-color: var(--
 @keyframes rise { from { opacity: 0; transform: translateY(.22em); filter: blur(10px); } }
 @keyframes rise-d { from { opacity: 0; transform: translateY(.22em); } }
 @keyframes brush { from { clip-path: inset(0 0 100% 0); filter: blur(6px); } to { clip-path: inset(0 0 0 0); } }
-@keyframes stroke { from { stroke-dashoffset: 20; } }
-@keyframes breathe { 50% { opacity: .35; } }
-.running .colon { animation: breathe 2s ease-in-out infinite; }
 
 /* ───────── narrow screens ───────── */
 @media (max-width: 720px) {
@@ -296,14 +281,71 @@ button.is-on { background: var(--paper); color: var(--ink); border-color: var(--
   .ko-name { font-size: min(10vh, 15vw); }
   .clock { font-size: min(25vw, 22vh); }
   .jdate { order: 3; flex-basis: 100%; }
-  .bottom { grid-template-columns: minmax(0, 1fr) auto; }
-  .rail { grid-column: 1 / -1; order: -1; }
-  .keys { display: none; }
+  .hints { display: none; }
+  .bottom { justify-items: end; }
 }
 @media (max-height: 520px) and (min-width: 721px) {
-  .keys { display: none; }
+  .hints { display: none; }
 }
 
+
+/* ───────── tab bar — the floating glass pill from Jam: the highlight slides on a spring and squishes like jelly ───────── */
+.tabbar {
+  position: fixed; z-index: 15;
+  left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  width: 208px; height: 62px; padding: 4px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-radius: 31px;
+  background: rgba(14, 14, 20, .42);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  backdrop-filter: blur(22px) saturate(1.4);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .38), inset 0 0 0 .5px rgba(244, 240, 234, .3), inset 0 1px 0 rgba(255, 255, 255, .16);
+  transform: translateX(-50%);
+  transition: transform .55s var(--ease), opacity .4s var(--ease);
+  animation: bar-in 1.2s var(--ease) backwards .7s;
+}
+.tabbar.is-gone { transform: translate(-50%, 150%); opacity: 0; pointer-events: none; }
+@keyframes bar-in { from { opacity: 0; transform: translate(-50%, 60%); } }
+.tab-pill {
+  position: absolute; top: 4px; bottom: 4px; left: 4px;
+  width: calc((100% - 8px) / 2);
+  transform: translateX(calc(var(--tab, 0) * 100%));
+  transition: transform 620ms cubic-bezier(.34, 1.45, .5, 1);
+  pointer-events: none;
+}
+.tab-pill i {
+  display: block; width: 100%; height: 100%;
+  border-radius: 999px;
+  background: rgba(244, 240, 234, .13);
+  box-shadow: inset 0 0 0 .5px rgba(244, 240, 234, .32);
+}
+.tab-pill i.jelly { animation: jelly 560ms cubic-bezier(.3, .9, .4, 1) both; }
+@keyframes jelly {
+  0% { transform: scale(1, 1); }
+  28% { transform: scale(1.32, .84); }
+  58% { transform: scale(.94, 1.1); }
+  80% { transform: scale(1.03, .98); }
+  100% { transform: scale(1, 1); }
+}
+.tabbar a {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border-radius: 999px;
+  color: var(--paper-3);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .3s, transform .2s;
+}
+.tabbar a b { font-family: var(--f-jp); font-weight: 400; font-size: 20px; line-height: 1; }
+.tabbar a small { font-family: var(--f-mono); font-size: 9px; letter-spacing: .24em; text-transform: uppercase; }
+.tabbar a[aria-current] { color: var(--paper); }
+.tabbar a:active { transform: scale(.9); }
+body.pre .tabbar { animation-play-state: paused; }
+
+/* while 遊 is open, the 候 frame steps back and only the silk shows through */
+.frame { transition: opacity .6s var(--ease), filter 1.2s var(--ease), visibility 0s; }
+body[data-view="asobi"] .frame, body[data-view="game"] .frame,
+body[data-view="asobi"] .restore, body[data-view="game"] .restore { opacity: 0; visibility: hidden; transition: opacity .4s var(--ease), visibility 0s .4s; }
 
 /* ───────── opening — a hairline is drawn, a seal is pressed, then the fusuma slide apart ───────── */
 .top { animation: rise 1.6s var(--ease) backwards .15s; }
@@ -448,25 +490,29 @@ body.pre .seal, body.pre .ko-read { animation-play-state: paused; }
   </section>
 
   <footer class="bottom">
-    <div class="focus">
-      <button id="focusBtn" type="button" aria-pressed="false">Focus</button>
-      <button id="durBtn" type="button" title="時間を切り替える"><span id="focusTime">25:00</span></button>
+    <div class="hints label">
+      <span>← → — seasons</span><span>H — hide</span><span>F — fullscreen</span><span>1 / 2 — 候 / 遊</span>
     </div>
-    <div class="rail" aria-hidden="true"><div class="rail-fill" id="railFill"></div></div>
-    <div class="tally label" title="今日の集中"><span>今日</span><span class="tally-glyphs" id="tally"></span></div>
     <nav class="nav" aria-label="季節をめくる">
       <button id="prevBtn" type="button" aria-label="前の候">←</button>
       <button id="nowBtn" type="button" aria-label="今の候に戻る">今</button>
       <button id="nextBtn" type="button" aria-label="次の候">→</button>
       <button id="hideBtn" type="button">Hide</button>
     </nav>
-    <div class="keys label">
-      <span>Space — focus</span><span>← → — seasons</span><span>H — hide</span><span>F — fullscreen</span>
-    </div>
   </footer>
 </main>
 
 <button class="restore" id="restoreBtn" type="button" hidden>Show</button>
+
+<section class="asobi-view" id="asobi" aria-label="あそび" hidden>
+  <div id="app"></div>
+</section>
+
+<nav class="tabbar" id="tabbar" aria-label="候と遊を切り替える">
+  <span class="tab-pill" aria-hidden="true"><i></i></span>
+  <a href="#ko" aria-current="page"><b>候</b><small>Kō</small></a>
+  <a href="#asobi"><b>遊</b><small>Asobi</small></a>
+</nav>
 
 <script>
 (() => {
@@ -649,7 +695,11 @@ body.pre .seal, body.pre .ko-read { animation-play-state: paused; }
       ? `No. ${i + 1} / 72`
       : `<span class="is-preview">Preview</span> · No. ${i + 1} / 72`;
     $("nowBtn").classList.toggle("is-on", offset !== 0);
-    document.documentElement.style.setProperty("--kc", s[5]);
+    const root = document.documentElement.style;
+    root.setProperty("--kc", s[5]);
+    root.setProperty("--k-deep", s[6][0]);
+    root.setProperty("--k-mid", s[6][1]);
+    root.setProperty("--k-light", s[6][2]);
     if (offset === 0) setFavicon(s);
 
     pal.target = s[6].map(hex3);
@@ -689,91 +739,6 @@ body.pre .seal, body.pre .ko-read { animation-play-state: paused; }
     document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text").replace(/\s+/g, " "));
   });
 
-  // ───────── focus timer + 正 tally
-  const DURS = [25, 50, 15];
-  const focus = { durIdx: 0, left: DURS[0] * 60, running: false, endAt: 0 };
-  const todayKey = () => { const d = new Date(); return `ko-tally-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
-  const fmt = s => `${pad(Math.floor(s / 60))}:${pad(Math.floor(s % 60))}`;
-  const STROKES = ["M2 2.5H18", "M10 2.5V17.5", "M10 10H16", "M5 9V17.5", "M1.5 17.5H18.5"]; // 正, in stroke order
-  let wakeLock = null;
-
-  function drawTally(animateLast) {
-    const n = +store.get(todayKey(), "0");
-    const box = $("tally");
-    box.innerHTML = "";
-    const glyphs = Math.max(1, Math.ceil(n / 5));
-    for (let g = 0; g < glyphs; g++) {
-      const strokes = Math.min(5, n - g * 5);
-      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("viewBox", "0 0 20 20");
-      if (strokes <= 0) svg.classList.add("ghost");
-      STROKES.forEach((d, si) => {
-        if (strokes > 0 && si >= strokes) return;
-        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        p.setAttribute("d", d);
-        if (animateLast && g === glyphs - 1 && si === strokes - 1) p.classList.add("new");
-        svg.appendChild(p);
-      });
-      box.appendChild(svg);
-    }
-    box.parentElement.title = `今日の集中: ${n}`;
-  }
-
-  let audio = null;
-  function chime() {
-    if (!audio) return;
-    const t = audio.currentTime;
-    [[523.25, .14], [1046.5, .06], [1444, .035]].forEach(([f, g]) => {
-      const o = audio.createOscillator(), v = audio.createGain();
-      o.type = "sine"; o.frequency.value = f;
-      v.gain.setValueAtTime(0, t);
-      v.gain.linearRampToValueAtTime(g, t + .01);
-      v.gain.exponentialRampToValueAtTime(.0001, t + 5);
-      o.connect(v).connect(audio.destination);
-      o.start(t); o.stop(t + 5.2);
-    });
-  }
-
-  function setRunning(on) {
-    focus.running = on;
-    $("focusBtn").textContent = on ? "Pause" : "Focus";
-    $("focusBtn").setAttribute("aria-pressed", String(on));
-    $("focusBtn").classList.toggle("is-on", on);
-    document.body.classList.toggle("running", on);
-    if (on && navigator.wakeLock) navigator.wakeLock.request("screen").then(l => wakeLock = l).catch(() => {});
-    if (!on && wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
-    if (!on) document.title = "候 KŌ";
-  }
-  function toggleFocus() {
-    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch {}
-    if (focus.running) { focus.left = Math.max(0, (focus.endAt - Date.now()) / 1000); setRunning(false); }
-    else { focus.endAt = Date.now() + focus.left * 1000; setRunning(true); }
-  }
-  function tickFocus() {
-    if (focus.running) {
-      focus.left = Math.max(0, (focus.endAt - Date.now()) / 1000);
-      document.title = `${fmt(Math.ceil(focus.left))} · 候`;
-      if (focus.left <= 0) {
-        setRunning(false);
-        store.set(todayKey(), String(+store.get(todayKey(), "0") + 1));
-        drawTally(true);
-        chime();
-        silk.pulse = 1;
-        focus.left = DURS[focus.durIdx] * 60;
-      }
-    }
-    const total = DURS[focus.durIdx] * 60;
-    $("focusTime").textContent = fmt(Math.ceil(focus.left));
-    $("railFill").style.width = `${(1 - focus.left / total) * 100}%`;
-  }
-  $("focusBtn").addEventListener("click", toggleFocus);
-  $("durBtn").addEventListener("click", () => {
-    if (focus.running) return;
-    focus.durIdx = (focus.durIdx + 1) % DURS.length;
-    focus.left = DURS[focus.durIdx] * 60;
-    tickFocus();
-  });
-
   // ───────── navigation & visibility
   const go = d => { offset = d === 0 ? 0 : offset + d; render(true); };
   $("prevBtn").addEventListener("click", () => go(-1));
@@ -799,8 +764,12 @@ body.pre .seal, body.pre .ko-read { animation-play-state: paused; }
   addEventListener("keydown", e => {
     if (!opened) { e.preventDefault(); openIntro(); return; }
     if (document.activeElement === intent || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.code === "Space") { e.preventDefault(); toggleFocus(); }
-    else if (e.key === "h" || e.key === "H") setHidden(!frame.classList.contains("is-hidden"));
+    const view = document.body.dataset.view || "ko";
+    if (view === "game") return; // the games own the keyboard
+    if (e.key === "1") { location.hash = "#ko"; return; }
+    if (e.key === "2") { location.hash = "#asobi"; return; }
+    if (view !== "ko") return;
+    if (e.key === "h" || e.key === "H") setHidden(!frame.classList.contains("is-hidden"));
     else if (e.key === "f" || e.key === "F") fullscreen();
     else if (e.key === "ArrowLeft") go(-1);
     else if (e.key === "ArrowRight") go(1);
@@ -1003,13 +972,14 @@ body.pre .seal, body.pre .ko-read { animation-play-state: paused; }
   function frameLoop(now) {
     const dt = Math.min(.1, (now - prev) / 1000);
     prev = now;
+    requestAnimationFrame(frameLoop);
+    // during a game the silk and weather hold still behind the veil, leaving the device to the game
+    if (document.body.dataset.view === "game") return;
     const d = new Date();
     tickClock(d);
-    tickFocus();
     silkAcc += dt;
     if (silkAcc >= (reduced ? 1 : 1 / 30)) { drawSilk(now, silkAcc); silkAcc = 0; } // ~30fps keeps the fan quiet
     weather.draw(now, dt);
-    requestAnimationFrame(frameLoop);
   }
 
   render(true);
@@ -1042,10 +1012,10 @@ body.pre .seal, body.pre .ko-read { animation-play-state: paused; }
     intro.addEventListener("click", openIntro);
     setTimeout(openIntro, 2900);
   })();
-  drawTally(false);
   tickClock(new Date());
   requestAnimationFrame(frameLoop);
 })();
 </script>
+<script type="module" src="js/asobi/app.js"></script>
 </body>
 </html>

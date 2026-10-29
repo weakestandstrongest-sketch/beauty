@@ -1,0 +1,9 @@
+{
+  "name": "ko",
+  "private": true,
+  "type": "module",
+  "description": "候 KŌ — 七十二候の時計と、ふたりで遊ぶゲーム",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  }
+}
