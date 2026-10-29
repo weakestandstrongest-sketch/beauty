@@ -121,17 +121,19 @@ body {
   font-style: italic;
   font-weight: 400;
   font-variation-settings: "opsz" 96;
-  font-size: min(23vw, 38vh);
+  font-size: min(20vw, 36vh);
   line-height: .74;
-  letter-spacing: -.045em;
+  letter-spacing: 0;
   white-space: nowrap;
   font-variant-numeric: lining-nums tabular-nums;
 }
-.clock .colon { display: inline-block; font-style: normal; transform: translateY(-.06em); margin: 0 .02em; opacity: .9; }
+/* each figure sits in its own fixed cell, so italic overhangs never touch and the clock doesn't shift as digits change */
+.clock .n { display: inline-block; width: .64em; text-align: center; font-style: inherit; }
+.clock .colon { display: inline-block; width: .3em; text-align: center; font-style: normal; transform: translateY(-.06em); opacity: .9; }
 .clock .ss {
   display: inline-block;
   vertical-align: top;
-  margin-left: .35em;
+  margin-left: .2em;
   font-family: var(--f-mono);
   font-style: normal;
   font-size: max(11px, .1em);
@@ -278,7 +280,7 @@ button.is-on { background: var(--paper); color: var(--ink); border-color: var(--
   }
   .ko { align-self: start; padding-top: 2vh; }
   .ko-name { font-size: min(10vh, 15vw); }
-  .clock { font-size: min(31vw, 24vh); }
+  .clock { font-size: min(25vw, 22vh); }
   .jdate { order: 3; flex-basis: 100%; }
   .bottom { grid-template-columns: minmax(0, 1fr) auto; }
   .rail { grid-column: 1 / -1; order: -1; }
@@ -310,7 +312,7 @@ button.is-on { background: var(--paper); color: var(--ink); border-color: var(--
   </header>
 
   <section class="clock-wrap" aria-label="現在時刻と、いまやっていること">
-    <p class="clock" id="clock" aria-live="off"><span class="digit" style="--d:.1s" id="hh">10</span><span class="colon digit" style="--d:.2s">:</span><span class="digit" style="--d:.3s" id="mm">57</span><span class="ss" id="ss">32</span></p>
+    <p class="clock" id="clock" aria-live="off"><span class="digit" style="--d:.1s" id="hh"><i class="n">1</i><i class="n">0</i></span><span class="colon digit" style="--d:.2s">:</span><span class="digit" style="--d:.3s" id="mm"><i class="n">5</i><i class="n">7</i></span><span class="ss" id="ss">32</span></p>
     <p class="intent">
       <span class="label">Now, I am</span>
       <span id="intent" contenteditable="true" spellcheck="false" role="textbox" aria-label="いまやっていること">studying, quietly.</span>
@@ -545,11 +547,12 @@ button.is-on { background: var(--paper); color: var(--ink); border-color: var(--
 
   // ───────── clock
   let lastSec = -1;
+  const setDigits = (el, v) => [...el.children].forEach((c, i) => { if (c.textContent !== v[i]) c.textContent = v[i]; });
   function tickClock(now) {
     if (now.getSeconds() === lastSec) return;
     lastSec = now.getSeconds();
-    $("hh").textContent = pad(now.getHours());
-    $("mm").textContent = pad(now.getMinutes());
+    setDigits($("hh"), pad(now.getHours()));
+    setDigits($("mm"), pad(now.getMinutes()));
     $("ss").textContent = pad(now.getSeconds());
     const y = now.getFullYear();
     $("jdate").textContent =
